@@ -13,19 +13,20 @@ import lxml.html as html
 import unicodedata
 import re
 
-# Use the Ctrl+C, Ctrl+V clipboard
+# Use the Ctrl+C, Ctrl+V clipboard.
 c = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-# Firefox provides clipboard contents in many formats, including HTML
+# Firefox provides clipboard contents in many formats, including HTML.
+# Maybe it would be possible to use the Richtext interface.
 s = c.wait_for_contents(Gdk.Atom.intern("text/html", False))
-# It seems to be encoded in UTF-16
+# It seems to be encoded in UTF-16.
 htmltext = s.get_data().decode("utf16")
-# Parse the HTML
+# Parse the HTML.
 tree = html.document_fromstring(htmltext)
-# Get all the table rows
+# Get all the table rows.
 for tr in tree.xpath("//tr"):
     # Normalize whitespace (e.g. non-breaking space), replace repeated 
     # newlines and spaces with a single space in every TD cell, then 
-    # join cells' contents with the separator
+    # join cells' contents with the separator.
     row = ";".join([
         re.sub("(\n| )+", " ", unicodedata.normalize("NFKD", td.text_content().strip()))
         for td in tr.xpath("td")
