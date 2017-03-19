@@ -1,0 +1,33 @@
+#!/usr/bin/python3
+
+# Select a part of a table in a internet browser (e.g. Firefox) using 
+# the mouse while keeping the Ctrl key down. Copy it to clipboard. Then 
+# paste the table in the CSV format in another program (e.g. vim,
+# :r !x-paste…).
+
+# The new/current way of using Gdk and Gtk (instead of pygtk)
+from gi.repository import Gdk
+from gi.repository import Gtk
+
+import lxml.html as html
+import unicodedata
+import re
+
+# Use the Ctrl+C, Ctrl+V clipboard
+c = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+# Firefox provides clipboard contents in many formats, including HTML
+s = c.wait_for_contents(Gdk.Atom.intern("text/html", False))
+# It seems to be encoded in UTF-16
+htmltext = s.get_data().decode("utf16")
+# Parse the HTML
+tree = html.document_fromstring(htmltext)
+# Get all the table rows
+for tr in tree.xpath("//tr"):
+    # Normalize whitespace (e.g. non-breaking space), replace repeated 
+    # newlines and spaces with a single space in every TD cell, then 
+    # join cells' contents with the separator
+    row = ";".join([
+        re.sub("(\n| )+", " ", unicodedata.normalize("NFKD", td.text_content().strip()))
+        for td in tr.xpath("td")
+    ])
+    print(row)
